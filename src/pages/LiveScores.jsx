@@ -25,7 +25,7 @@ export default function LiveScores() {
         setError("");
       },
       (err) => {
-        console.error("Live scores error:", err);
+        console.error(err);
         setError("Scores load nahi huay: " + err.message);
         setLoading(false);
       }
@@ -35,12 +35,36 @@ export default function LiveScores() {
   }, []);
 
   const liveMatches = matches.filter(
-    (match) => match.status === "LIVE"
+    (m) => String(m.status || "").toUpperCase() === "LIVE"
   );
 
-  const otherMatches = matches.filter(
-    (match) => match.status !== "LIVE"
+  const upcomingMatches = matches.filter(
+    (m) => String(m.status || "").toUpperCase() === "UPCOMING"
   );
+
+  const completedMatches = matches.filter(
+    (m) => String(m.status || "").toUpperCase() === "COMPLETED"
+  );
+
+  function MatchSection({ title, items, emptyText }) {
+    return (
+      <section className="mt-10">
+        <h2 className="text-2xl font-bold mb-5">{title}</h2>
+
+        {items.length > 0 ? (
+          <div className="grid md:grid-cols-2 gap-5">
+            {items.map((match) => (
+              <MatchCard key={match.id} match={match} />
+            ))}
+          </div>
+        ) : (
+          <p className="bg-[#142b22] rounded-xl p-6 text-gray-400">
+            {emptyText}
+          </p>
+        )}
+      </section>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0b1912] text-white">
@@ -56,47 +80,35 @@ export default function LiveScores() {
           Live Scores
         </h1>
 
-        <p className="text-gray-400 mb-8">
+        <p className="text-gray-400">
           Live, upcoming aur completed matches.
         </p>
 
         {error && (
-          <p className="text-red-400 mb-5">{error}</p>
+          <p className="text-red-400 mt-5">{error}</p>
         )}
 
         {loading ? (
-          <p>Matches load ho rahe hain...</p>
+          <p className="mt-8">Matches load ho rahe hain...</p>
         ) : (
           <>
-            <h2 className="text-2xl font-bold mb-5">
-              Live Matches
-            </h2>
+            <MatchSection
+              title="🔴 Live Matches"
+              items={liveMatches}
+              emptyText="Abhi koi live match nahi hai."
+            />
 
-            {liveMatches.length ? (
-              <div className="grid md:grid-cols-2 gap-5">
-                {liveMatches.map((match) => (
-                  <MatchCard key={match.id} match={match} />
-                ))}
-              </div>
-            ) : (
-              <p className="bg-[#142b22] rounded-xl p-6 text-gray-400">
-                Abhi koi live match nahi hai.
-              </p>
-            )}
+            <MatchSection
+              title="📅 Upcoming Scores"
+              items={upcomingMatches}
+              emptyText="Abhi koi upcoming match nahi hai."
+            />
 
-            <h2 className="text-2xl font-bold mt-10 mb-5">
-              Other Matches
-            </h2>
-
-            {otherMatches.length ? (
-              <div className="grid md:grid-cols-2 gap-5">
-                {otherMatches.map((match) => (
-                  <MatchCard key={match.id} match={match} />
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-400">Koi aur match nahi hai.</p>
-            )}
+            <MatchSection
+              title="🏆 Completed Matches"
+              items={completedMatches}
+              emptyText="Abhi koi completed match nahi hai."
+            />
           </>
         )}
       </main>
